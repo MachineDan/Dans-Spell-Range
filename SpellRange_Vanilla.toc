@@ -1,8 +1,0 @@
-## Interface: 11506, 11505, 11504, 11503, 11502, 11501, 11500, 11404, 11300
-## Title: SpellRange
-## Notes: Enhances action bar range indicators with thick, high-contrast keybind text and customizable targeting modes.
-## Author: Daniel
-## Version: 1.0.0
-## SavedVariables: SpellRangeDB
-
-SpellRange.lua
