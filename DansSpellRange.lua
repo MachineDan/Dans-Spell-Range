@@ -44,16 +44,16 @@ end
 -- Update the size and visibility of the optional dark square/box behind the hotkey
 local function UpdateButtonBackdrop(button)
     local hotkey = GetButtonHotKey(button)
-    local bg = button.SpellRangeBG
+    local bg = button.DansSpellRangeBG
     if not bg or not hotkey then return end
 
-    if SpellRangeDB.showBackdrop and hotkey:IsShown() then
+    if DansSpellRangeDB.showBackdrop and hotkey:IsShown() then
         local text = hotkey:GetText()
         if text and text ~= "" then
             local strWidth = hotkey:GetStringWidth() or 0
             local strHeight = hotkey:GetStringHeight() or 0
             if strWidth > 0 then
-                local alpha = SpellRangeDB.bgAlpha or DEFAULT_SETTINGS.bgAlpha
+                local alpha = DansSpellRangeDB.bgAlpha or DEFAULT_SETTINGS.bgAlpha
                 bg:SetSize(math.max(strWidth + 4, 10), math.max(strHeight + 2, 10))
                 bg:SetColorTexture(0, 0, 0, alpha)
                 bg:Show()
@@ -72,8 +72,8 @@ local function StyleButton(button)
     if not hotkey then return end
 
     local fontFile = NumberFontNormal and NumberFontNormal:GetFont() or hotkey:GetFont()
-    local targetSize = SpellRangeDB.fontSize or DEFAULT_SETTINGS.fontSize
-    local fontFlags = (SpellRangeDB.thickFont ~= false) and "THICKOUTLINE" or ""
+    local targetSize = DansSpellRangeDB.fontSize or DEFAULT_SETTINGS.fontSize
+    local fontFlags = (DansSpellRangeDB.thickFont ~= false) and "THICKOUTLINE" or ""
 
     hotkey:SetFont(fontFile, targetSize, fontFlags)
     hotkey:SetShadowColor(0, 0, 0, 1)
@@ -81,18 +81,18 @@ local function StyleButton(button)
     hotkey:SetDrawLayer("OVERLAY", 7)
 
     -- Manage optional dark square box
-    if SpellRangeDB.showBackdrop then
-        if not button.SpellRangeBG then
+    if DansSpellRangeDB.showBackdrop then
+        if not button.DansSpellRangeBG then
             local bg = button:CreateTexture(nil, "OVERLAY", nil, 0)
             bg:SetPoint("TOPRIGHT", hotkey, "TOPRIGHT", 2, 1)
-            button.SpellRangeBG = bg
+            button.DansSpellRangeBG = bg
 
             hooksecurefunc(hotkey, "Show", function()
                 UpdateButtonBackdrop(button)
             end)
             hooksecurefunc(hotkey, "Hide", function()
-                if button.SpellRangeBG then
-                    button.SpellRangeBG:Hide()
+                if button.DansSpellRangeBG then
+                    button.DansSpellRangeBG:Hide()
                 end
             end)
             hooksecurefunc(hotkey, "SetText", function()
@@ -101,8 +101,8 @@ local function StyleButton(button)
         end
         UpdateButtonBackdrop(button)
     else
-        if button.SpellRangeBG then
-            button.SpellRangeBG:Hide()
+        if button.DansSpellRangeBG then
+            button.DansSpellRangeBG:Hide()
         end
     end
 end
@@ -153,17 +153,17 @@ local function UpdateButtonVisuals(button)
     -- 1. HotKey coloring: vivid red if out of range, crisp white if in range or idle
     if hotkey then
         if outOfRange then
-            local c = SpellRangeDB.outOfRangeColor or DEFAULT_SETTINGS.outOfRangeColor
+            local c = DansSpellRangeDB.outOfRangeColor or DEFAULT_SETTINGS.outOfRangeColor
             hotkey:SetVertexColor(c.r, c.g, c.b)
         else
-            local c = SpellRangeDB.inRangeColor or DEFAULT_SETTINGS.inRangeColor
+            local c = DansSpellRangeDB.inRangeColor or DEFAULT_SETTINGS.inRangeColor
             hotkey:SetVertexColor(c.r, c.g, c.b)
         end
     end
 
     -- 2. Icon coloring (only when tintIcon is enabled)
     if icon then
-        if SpellRangeDB.tintIcon then
+        if DansSpellRangeDB.tintIcon then
             if outOfRange then
                 icon:SetVertexColor(1.0, 0.2, 0.2) -- Red icon when out of range
             else
@@ -194,7 +194,7 @@ RefreshAllButtons = function()
                 UpdateButtonVisuals(btn)
 
                 -- If tintIcon is disabled, ensure icon color is restored to Blizzard standard
-                if not SpellRangeDB.tintIcon and ActionButton_UpdateUsable then
+                if not DansSpellRangeDB.tintIcon and ActionButton_UpdateUsable then
                     ActionButton_UpdateUsable(btn)
                 end
             end
@@ -204,17 +204,17 @@ end
 
 -- Initialize database and apply defaults
 local function InitDB()
-    SpellRangeDB = SpellRangeDB or {}
+    DansSpellRangeDB = DansSpellRangeDB or {}
     for k, v in pairs(DEFAULT_SETTINGS) do
-        if SpellRangeDB[k] == nil then
-            SpellRangeDB[k] = v
+        if DansSpellRangeDB[k] == nil then
+            DansSpellRangeDB[k] = v
         end
     end
 end
 
 -- Print helper for chat messages
 local function PrintMessage(msg)
-    print("|cff00ccffSpellRange:|r " .. msg)
+    print("|cff00ccffDan's Spell Range:|r " .. msg)
 end
 
 -------------------------------------------------------------------------------
@@ -224,13 +224,13 @@ end
 local function CreateOptionsPanel()
     if optionsPanel then return optionsPanel end
 
-    local panel = CreateFrame("Frame", "SpellRangeOptionsPanel", UIParent)
-    panel.name = "SpellRange"
+    local panel = CreateFrame("Frame", "DansSpellRangeOptionsPanel", UIParent)
+    panel.name = "Dan's Spell Range"
 
     -- Title
     local title = panel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
     title:SetPoint("TOPLEFT", 16, -16)
-    title:SetText("SpellRange")
+    title:SetText("Dan's Spell Range")
 
     -- Subtitle
     local subHeader = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
@@ -241,7 +241,7 @@ local function CreateOptionsPanel()
 
     -- Helper to build styled checkboxes
     local function CreateCheckbox(name, labelText, subtextText, yOffset, onClick)
-        local cb = CreateFrame("CheckButton", "SpellRangeOpt_" .. name, panel, "UICheckButtonTemplate")
+        local cb = CreateFrame("CheckButton", "DansSpellRangeOpt_" .. name, panel, "UICheckButtonTemplate")
         cb:SetPoint("TOPLEFT", panel, "TOPLEFT", 16, yOffset)
 
         local text = _G[cb:GetName() .. "Text"]
@@ -269,7 +269,7 @@ local function CreateOptionsPanel()
 
     -- Helper to build styled sliders
     local function CreateSlider(name, labelText, minVal, maxVal, step, yOffset, formatVal, onValChanged)
-        local slider = CreateFrame("Slider", "SpellRangeOpt_" .. name, panel, "OptionsSliderTemplate")
+        local slider = CreateFrame("Slider", "DansSpellRangeOpt_" .. name, panel, "OptionsSliderTemplate")
         slider:SetPoint("TOPLEFT", panel, "TOPLEFT", 24, yOffset)
         slider:SetWidth(300)
         slider:SetMinMaxValues(minVal, maxVal)
@@ -300,7 +300,7 @@ local function CreateOptionsPanel()
     -- 1. Checkbox: Whole icon tint
     local cbTint = CreateCheckbox("TintIcon", "Tint whole spell icon red", "When an action is out of range, colors the entire button icon red instead of just the number.", -75,
         function(checked)
-            SpellRangeDB.tintIcon = checked
+            DansSpellRangeDB.tintIcon = checked
             RefreshAllButtons()
         end
     )
@@ -308,7 +308,7 @@ local function CreateOptionsPanel()
     -- 2. Checkbox: Thick keybind font with shadow
     local cbThick = CreateCheckbox("ThickFont", "Thick keybind numbers (THICKOUTLINE + Shadow)", "Applies a bold font with a clean THICKOUTLINE and drop shadow to keybind numbers (1-9, etc.).", -140,
         function(checked)
-            SpellRangeDB.thickFont = checked
+            DansSpellRangeDB.thickFont = checked
             StyleAllButtons()
             RefreshAllButtons()
         end
@@ -317,7 +317,7 @@ local function CreateOptionsPanel()
     -- 3. Checkbox: Optional dark square box
     local cbBackdrop = CreateCheckbox("Backdrop", "Dark background box behind numbers (Optional)", "Displays a subtle dark rectangular backing box behind keybind numbers for extra contrast on bright icons.", -205,
         function(checked)
-            SpellRangeDB.showBackdrop = checked
+            DansSpellRangeDB.showBackdrop = checked
             StyleAllButtons()
         end
     )
@@ -326,7 +326,7 @@ local function CreateOptionsPanel()
     local sliderSize = CreateSlider("FontSize", "Keybind Font Size", 8, 22, 1, -280,
         function(val) return "|cffffd100" .. math.floor(val) .. " pt|r" end,
         function(val)
-            SpellRangeDB.fontSize = math.floor(val)
+            DansSpellRangeDB.fontSize = math.floor(val)
             StyleAllButtons()
         end
     )
@@ -335,7 +335,7 @@ local function CreateOptionsPanel()
     local sliderAlpha = CreateSlider("BoxAlpha", "Background Box Darkness", 0, 100, 5, -335,
         function(val) return "|cffffd100" .. math.floor(val) .. "%|r" end,
         function(val)
-            SpellRangeDB.bgAlpha = val / 100
+            DansSpellRangeDB.bgAlpha = val / 100
             StyleAllButtons()
         end
     )
@@ -347,7 +347,7 @@ local function CreateOptionsPanel()
     btnDefaults:SetText("Defaults")
     btnDefaults:SetScript("OnClick", function()
         for k, v in pairs(DEFAULT_SETTINGS) do
-            SpellRangeDB[k] = v
+            DansSpellRangeDB[k] = v
         end
         if panel.refresh then panel.refresh() end
         StyleAllButtons()
@@ -357,22 +357,22 @@ local function CreateOptionsPanel()
 
     -- Refresh panel controls from DB
     panel.refresh = function()
-        cbTint:SetChecked(SpellRangeDB.tintIcon)
-        cbThick:SetChecked(SpellRangeDB.thickFont ~= false)
-        cbBackdrop:SetChecked(SpellRangeDB.showBackdrop == true)
+        cbTint:SetChecked(DansSpellRangeDB.tintIcon)
+        cbThick:SetChecked(DansSpellRangeDB.thickFont ~= false)
+        cbBackdrop:SetChecked(DansSpellRangeDB.showBackdrop == true)
 
-        local curSize = SpellRangeDB.fontSize or DEFAULT_SETTINGS.fontSize
+        local curSize = DansSpellRangeDB.fontSize or DEFAULT_SETTINGS.fontSize
         sliderSize:SetValue(curSize)
         sliderSize.ValDisplay:SetText("|cffffd100" .. curSize .. " pt|r")
 
-        local curAlpha = math.floor((SpellRangeDB.bgAlpha or DEFAULT_SETTINGS.bgAlpha) * 100)
+        local curAlpha = math.floor((DansSpellRangeDB.bgAlpha or DEFAULT_SETTINGS.bgAlpha) * 100)
         sliderAlpha:SetValue(curAlpha)
         sliderAlpha.ValDisplay:SetText("|cffffd100" .. curAlpha .. "%|r")
     end
 
     panel.default = function()
         for k, v in pairs(DEFAULT_SETTINGS) do
-            SpellRangeDB[k] = v
+            DansSpellRangeDB[k] = v
         end
         if panel.refresh then panel.refresh() end
         StyleAllButtons()
@@ -387,7 +387,7 @@ local function CreateOptionsPanel()
     -- Register with Blizzard Settings / Interface Options
     if Settings and Settings.RegisterCanvasLayoutCategory and Settings.RegisterAddOnCategory then
         -- Modern Settings UI (WoW 10.0+, 11.0+, Classic Era 1.15+)
-        local category = Settings.RegisterCanvasLayoutCategory(panel, "SpellRange")
+        local category = Settings.RegisterCanvasLayoutCategory(panel, "Dan's Spell Range")
         Settings.RegisterAddOnCategory(category)
         panel.settingsCategory = category
     elseif InterfaceOptions_AddCategory then
@@ -399,7 +399,7 @@ local function CreateOptionsPanel()
     return optionsPanel
 end
 
--- Open options panel directly (opens Game Menu Settings to the SpellRange tab)
+-- Open options panel directly (opens Game Menu Settings to the Dan's Spell Range tab)
 OpenOptions = function()
     local panel = CreateOptionsPanel()
     if not panel then return end
@@ -432,39 +432,39 @@ local function HandleSlashCommand(msg)
 
     elseif cmd == "tint" then
         if arg == "on" then
-            SpellRangeDB.tintIcon = true
+            DansSpellRangeDB.tintIcon = true
         elseif arg == "off" then
-            SpellRangeDB.tintIcon = false
+            DansSpellRangeDB.tintIcon = false
         else
-            SpellRangeDB.tintIcon = not SpellRangeDB.tintIcon
+            DansSpellRangeDB.tintIcon = not DansSpellRangeDB.tintIcon
         end
-        PrintMessage("Full icon tinting: " .. (SpellRangeDB.tintIcon and "|cff00ff00Enabled|r" or "|cffff0000Disabled|r"))
+        PrintMessage("Full icon tinting: " .. (DansSpellRangeDB.tintIcon and "|cff00ff00Enabled|r" or "|cffff0000Disabled|r"))
         RefreshAllButtons()
 
     elseif cmd == "box" or cmd == "bg" then
         if arg == "on" then
-            SpellRangeDB.showBackdrop = true
+            DansSpellRangeDB.showBackdrop = true
         elseif arg == "off" then
-            SpellRangeDB.showBackdrop = false
+            DansSpellRangeDB.showBackdrop = false
         else
-            SpellRangeDB.showBackdrop = not SpellRangeDB.showBackdrop
+            DansSpellRangeDB.showBackdrop = not DansSpellRangeDB.showBackdrop
         end
         StyleAllButtons()
-        PrintMessage("Background box: " .. (SpellRangeDB.showBackdrop and "|cff00ff00Enabled|r" or "|cffff0000Disabled|r"))
+        PrintMessage("Background box: " .. (DansSpellRangeDB.showBackdrop and "|cff00ff00Enabled|r" or "|cffff0000Disabled|r"))
 
     elseif cmd == "size" then
         local size = tonumber(arg)
         if size and size >= 8 and size <= 22 then
-            SpellRangeDB.fontSize = size
+            DansSpellRangeDB.fontSize = size
             StyleAllButtons()
             PrintMessage("Font size set to |cffffd100" .. size .. "|r.")
         else
-            PrintMessage("Usage: |cffffd100/sr size <8-22>|r (current: " .. (SpellRangeDB.fontSize or DEFAULT_SETTINGS.fontSize) .. ")")
+            PrintMessage("Usage: |cffffd100/dsr size <8-22>|r (current: " .. (DansSpellRangeDB.fontSize or DEFAULT_SETTINGS.fontSize) .. ")")
         end
 
     elseif cmd == "reset" then
         for k, v in pairs(DEFAULT_SETTINGS) do
-            SpellRangeDB[k] = v
+            DansSpellRangeDB[k] = v
         end
         if optionsPanel and optionsPanel.refresh then
             optionsPanel.refresh()
@@ -475,11 +475,11 @@ local function HandleSlashCommand(msg)
 
     else
         PrintMessage("Available commands:")
-        print("  |cffffd100/SpellRangeIndicator|r (or |cffffd100/sri|r, |cffffd100/sr|r) - Open options menu")
-        print("  |cffffd100/sr tint|r - Toggle full spell icon red tinting (current: " .. (SpellRangeDB.tintIcon and "on" or "off") .. ")")
-        print("  |cffffd100/sr box|r - Toggle background box behind numbers (current: " .. (SpellRangeDB.showBackdrop and "on" or "off") .. ")")
-        print("  |cffffd100/sr size <8-22>|r - Set font size (current: " .. SpellRangeDB.fontSize .. ")")
-        print("  |cffffd100/sr reset|r - Reset all settings to defaults")
+        print("  |cffffd100/dsr|r (or |cffffd100/dansspellrange|r) - Open options menu")
+        print("  |cffffd100/dsr tint|r - Toggle full spell icon red tinting (current: " .. (DansSpellRangeDB.tintIcon and "on" or "off") .. ")")
+        print("  |cffffd100/dsr box|r - Toggle background box behind numbers (current: " .. (DansSpellRangeDB.showBackdrop and "on" or "off") .. ")")
+        print("  |cffffd100/dsr size <8-22>|r - Set font size (current: " .. DansSpellRangeDB.fontSize .. ")")
+        print("  |cffffd100/dsr reset|r - Reset all settings to defaults")
     end
 end
 
@@ -507,7 +507,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         -- Hook usability updates so out-of-range icon tint isn't prematurely cleared by mana updates
         if ActionButton_UpdateUsable then
             hooksecurefunc("ActionButton_UpdateUsable", function(button)
-                if not button or not SpellRangeDB.tintIcon then return end
+                if not button or not DansSpellRangeDB.tintIcon then return end
                 if IsActionOutOfRange(button) then
                     local icon = GetButtonIcon(button)
                     if icon then
@@ -535,12 +535,10 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         -- Register options panel into Blizzard Settings / Interface Options menu
         CreateOptionsPanel()
 
-        -- Register slash commands: /SpellRangeIndicator, /sri, /spellrange, /sr
-        SLASH_SPELLRANGEINDICATOR1 = "/spellrangeindicator"
-        SLASH_SPELLRANGEINDICATOR2 = "/sri"
-        SLASH_SPELLRANGEINDICATOR3 = "/spellrange"
-        SLASH_SPELLRANGEINDICATOR4 = "/sr"
-        SlashCmdList["SPELLRANGEINDICATOR"] = HandleSlashCommand
+        -- Register slash commands: /dsr, /dansspellrange
+        SLASH_DANSSPELLRANGE1 = "/dsr"
+        SLASH_DANSSPELLRANGE2 = "/dansspellrange"
+        SlashCmdList["DANSSPELLRANGE"] = HandleSlashCommand
 
     elseif event == "PLAYER_TARGET_CHANGED" or event == "PLAYER_REGEN_ENABLED" or event == "PLAYER_REGEN_DISABLED" then
         -- Refresh range colors instantly when targeting/untargeting or engaging combat

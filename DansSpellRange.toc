@@ -1,5 +1,5 @@
 ## Interface: 16001, 11509
-## Title: SpellRange
+## Title: Dan's Spell Range
 ## Notes: Turns action bar keybinds red when your target is out of range, with bold, easy-to-read keybind numbers and an optional red icon tint.
 ## Author: Daniel
 ## Version: 1.0.0
@@ -9,6 +9,6 @@
 ## Category-frFR: Barres d'action
 ## Category-esES: Barras de acción
 ## Category-esMX: Barras de acción
-## SavedVariables: SpellRangeDB
+## SavedVariables: DansSpellRangeDB
 
-SpellRange.lua
+DansSpellRange.lua

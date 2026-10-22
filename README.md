@@ -1,8 +1,8 @@
-# SpellRange
+# Dan's Spell Range
 
 See at a glance which abilities can reach your target: action bar keybinds turn red when your target is out of range.
 
-SpellRange doesn't replace your action bars. It restyles the keybind numbers on Blizzard's own action buttons
+Dan's Spell Range doesn't replace your action bars. It restyles the keybind numbers on Blizzard's own action buttons
 so they're easy to read, and colors them by range.
 
 ## Features
@@ -20,17 +20,17 @@ so they're easy to read, and colors them by range.
 
 ## Installation
 
-1. Download **`SpellRange-x.y.z.zip`** from the [latest release](https://github.com/MachineDan/SpellRange/releases/latest)
+1. Download **`DansSpellRange-x.y.z.zip`** from the [latest release](https://github.com/MachineDan/Dans-Spell-Range/releases/latest)
    (not the "Source code" downloads, and not **Code → Download ZIP**).
-2. Open the zip and drag the **`SpellRange`** folder inside it into your AddOns folder, for example
-   `World of Warcraft\_classic_era_\Interface\AddOns\`. You should end up with `AddOns\SpellRange\SpellRange.toc`.
+2. Open the zip and drag the **`DansSpellRange`** folder inside it into your AddOns folder, for example
+   `World of Warcraft\_classic_era_\Interface\AddOns\`. You should end up with `AddOns\DansSpellRange\DansSpellRange.toc`.
 3. Restart the game or type `/reload`.
 
 Or install it through the CurseForge app, which does all of this for you.
 
 ## Usage
 
-Open the options with `/sr`, or from **Esc → Options → AddOns → SpellRange**. Changes apply right away.
+Open the options with `/dsr`, or from **Esc → Options → AddOns → Dan's Spell Range**. Changes apply right away.
 
 | Option | What it does |
 | --- | --- |
@@ -43,22 +43,22 @@ Open the options with `/sr`, or from **Esc → Options → AddOns → SpellRange
 
 ### Slash commands
 
-`/sr`, `/sri`, `/spellrange` and `/spellrangeindicator` all work.
+`/dsr` and `/dansspellrange` both work.
 
 | Command | What it does |
 | --- | --- |
-| `/sr` | Open the options |
-| `/sr tint [on\|off]` | Tint whole spell icons red when out of range (toggles if you leave out on/off) |
-| `/sr box [on\|off]` | Show the dark box behind keybind numbers (toggles if you leave out on/off) |
-| `/sr size <8-22>` | Keybind font size |
-| `/sr reset` | Reset all settings to defaults |
-| `/sr help` | List all commands in chat |
+| `/dsr` | Open the options |
+| `/dsr tint [on\|off]` | Tint whole spell icons red when out of range (toggles if you leave out on/off) |
+| `/dsr box [on\|off]` | Show the dark box behind keybind numbers (toggles if you leave out on/off) |
+| `/dsr size <8-22>` | Keybind font size |
+| `/dsr reset` | Reset all settings to defaults |
+| `/dsr help` | List all commands in chat |
 
 ## Good to know
 
 - **Range is checked against your target.** With no target, or a dead one, keybinds stay white.
   Abilities with no range, like self buffs, never turn red.
-- **Blizzard's action bars only:** SpellRange styles the default action bars.
+- **Blizzard's action bars only:** Dan's Spell Range styles the default action bars.
   Action bar addons that create their own buttons, like Bartender4, aren't affected.
 
 ## Compatibility
