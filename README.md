@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="media/dans-spell-range-logo.webp" alt="Dan's Spell Range logo" width="320">
+</p>
+
 # Dan's Spell Range
 
 See at a glance which abilities can reach your target: action bar keybinds turn red when your target is out of range.
