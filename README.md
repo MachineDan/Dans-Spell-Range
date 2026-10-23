@@ -4,20 +4,20 @@
 
 # Dan's Spell Range
 
-See at a glance which abilities can reach your target: action bar keybinds turn red when your target is out of range.
+Thicker, bolder action bar keybinds, so you can see at a glance which abilities are out of range.
 
-Dan's Spell Range doesn't replace your action bars. It restyles the keybind numbers on Blizzard's own action buttons
-so they're easy to read, and colors them by range.
+Blizzard already turns keybinds red when your target is out of range, but the numbers are small and thin.
+Dan's Spell Range makes them thick and bold, lets you make them bigger, and can tint the whole spell icon red.
+It restyles Blizzard's own action buttons rather than replacing your bars.
 
 ## Features
 
-- **Red keybinds when out of range:** the keybind number on an action button turns red when your target
-  is out of range, and white again when it's in range.
+- **Thick, bold keybinds:** a thick outline and a drop shadow on keybind numbers,
+  bright white when in range and red when out of range.
+- **Bigger keybinds:** set the keybind font size from 8 to 22.
 - **Optional red icon tint:** tint the whole spell icon red when out of range, like *tullaRange* or *RedRange*.
   Icons go back to their normal colors (including grey for unusable and blue for out of mana)
   when you're in range again, untarget, or target a friendly unit.
-- **Bold, readable keybinds:** a thick outline and a drop shadow on keybind numbers,
-  with an adjustable font size (8–22).
 - **Optional background box:** a dark box behind keybind numbers for extra contrast on bright icons,
   with adjustable darkness.
 - **Instant updates** when you change target and when you enter or leave combat.
