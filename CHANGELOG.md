@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.1 (2026-10-23)
 
 ### Added
 - **Keybind Shadow Size** option: set how far the shadow sits from the keybind text, from 0 (no shadow) to 4 pixels. Also `/dsr shadow <0-4>`.

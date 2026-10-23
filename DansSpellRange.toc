@@ -2,7 +2,7 @@
 ## Title: Dan's Spell Range
 ## Notes: Thicker, bolder action bar keybinds: make them bigger, add a shadow, or tint the whole spell icon red when out of range.
 ## Author: Daniel
-## Version: 1.0.0
+## Version: 1.0.1
 ## IconTexture: Interface\Icons\Ability_Hunter_SniperShot
 ## Category: Action Bars
 ## Category-deDE: Aktionsleisten
