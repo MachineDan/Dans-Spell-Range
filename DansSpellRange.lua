@@ -3,10 +3,11 @@ local addonName = ...
 -- Default SavedVariables settings
 local DEFAULT_SETTINGS = {
     tintIcon = false,      -- true: tint the entire spell icon red when out of range
-    thickFont = true,      -- true: apply THICKOUTLINE and font shadow
+    thickFont = true,      -- true: apply THICKOUTLINE to keybind numbers
     showBackdrop = false,  -- true: display dark rectangular backdrop box behind numbers
     bgAlpha = 0.65,        -- Opacity of the background box (0.0 to 1.0)
     fontSize = 13,         -- Font size for keybind numbers (8-22)
+    shadowSize = 1.5,      -- Font shadow offset in pixels (0-4, 0 = no shadow)
     outOfRangeColor = { r = 1.0, g = 0.15, b = 0.15 }, -- Vivid neon red
     inRangeColor = { r = 1.0, g = 1.0, b = 1.0 },       -- Pure crisp white
 }
@@ -28,6 +29,13 @@ local optionsPanel
 local RefreshAllButtons
 local StyleAllButtons
 local OpenOptions
+
+-- Newer clients moved these into C_ActionBar
+local IsActionInRange = IsActionInRange or (C_ActionBar and C_ActionBar.IsActionInRange)
+local IsUsableAction = IsUsableAction or (C_ActionBar and C_ActionBar.IsUsableAction)
+
+-- Buttons whose icon we tinted red, so only those get their color put back
+local tintedButtons = {}
 
 -- Helper to safely retrieve hotkey font string for any button
 local function GetButtonHotKey(button)
@@ -74,10 +82,11 @@ local function StyleButton(button)
     local fontFile = NumberFontNormal and NumberFontNormal:GetFont() or hotkey:GetFont()
     local targetSize = DansSpellRangeDB.fontSize or DEFAULT_SETTINGS.fontSize
     local fontFlags = (DansSpellRangeDB.thickFont ~= false) and "THICKOUTLINE" or ""
+    local shadow = DansSpellRangeDB.shadowSize or DEFAULT_SETTINGS.shadowSize
 
     hotkey:SetFont(fontFile, targetSize, fontFlags)
-    hotkey:SetShadowColor(0, 0, 0, 1)
-    hotkey:SetShadowOffset(1.5, -1.5)
+    hotkey:SetShadowColor(0, 0, 0, shadow > 0 and 1 or 0)
+    hotkey:SetShadowOffset(shadow, -shadow)
     hotkey:SetDrawLayer("OVERLAY", 7)
 
     -- Manage optional dark square box
@@ -142,11 +151,37 @@ local function IsActionOutOfRange(button)
     return false
 end
 
+-- Tint the icon red while out of range (when enabled). Once it shouldn't be red anymore,
+-- give the icons we tinted Blizzard's usable / out of mana / unusable color back.
+local function UpdateIconTint(button, outOfRange)
+    local icon = GetButtonIcon(button)
+    if not icon then return end
+
+    if DansSpellRangeDB.tintIcon and outOfRange then
+        icon:SetVertexColor(1.0, 0.2, 0.2) -- Red icon when out of range
+        tintedButtons[button] = true
+    elseif tintedButtons[button] then
+        tintedButtons[button] = nil
+
+        local isUsable, notEnoughMana = true, false
+        if button.action and IsUsableAction then
+            isUsable, notEnoughMana = IsUsableAction(button.action)
+        end
+
+        if isUsable then
+            icon:SetVertexColor(1.0, 1.0, 1.0) -- Normal full color
+        elseif notEnoughMana then
+            icon:SetVertexColor(0.5, 0.5, 1.0) -- Out of mana
+        else
+            icon:SetVertexColor(0.4, 0.4, 0.4) -- Unusable
+        end
+    end
+end
+
 -- Update both hotkey text and icon vertex colors for a button
 local function UpdateButtonVisuals(button)
     if not button then return end
     local hotkey = GetButtonHotKey(button)
-    local icon = GetButtonIcon(button)
 
     local outOfRange = IsActionOutOfRange(button)
 
@@ -161,42 +196,40 @@ local function UpdateButtonVisuals(button)
         end
     end
 
-    -- 2. Icon coloring (only when tintIcon is enabled)
-    if icon then
-        if DansSpellRangeDB.tintIcon then
-            if outOfRange then
-                icon:SetVertexColor(1.0, 0.2, 0.2) -- Red icon when out of range
-            else
-                -- In range / no target: restore normal usable or mana state
-                local isUsable, notEnoughMana = true, false
-                if button.action and IsUsableAction then
-                    isUsable, notEnoughMana = IsUsableAction(button.action)
-                end
+    -- 2. Icon coloring: red when tinting is on and out of range, otherwise undo our tint
+    UpdateIconTint(button, outOfRange)
+end
 
-                if not isUsable then
-                    icon:SetVertexColor(0.4, 0.4, 0.4) -- Unusable
-                elseif notEnoughMana then
-                    icon:SetVertexColor(0.5, 0.5, 1.0) -- Out of mana
-                else
-                    icon:SetVertexColor(1.0, 1.0, 1.0) -- Normal full color
-                end
+-- Blizzard just reset the icon color for usability (e.g. mana changed): tint it again if still out of range
+local function OnUsableUpdated(button)
+    if not button then return end
+    tintedButtons[button] = nil
+    UpdateIconTint(button, IsActionOutOfRange(button))
+end
+
+-- Instantly refresh range status and icon states on all buttons
+-- (hidden ones too, so a tint is never left behind when tinting is turned off)
+RefreshAllButtons = function()
+    for _, prefix in ipairs(BUTTON_PREFIXES) do
+        for i = 1, 12 do
+            local btn = _G[prefix .. i]
+            if btn then
+                UpdateButtonVisuals(btn)
             end
         end
     end
 end
 
--- Instantly refresh range status and icon states on all visible buttons
-RefreshAllButtons = function()
+-- Newer clients (Classic Era 1.15+) replaced the global ActionButton_* functions with
+-- methods that each button has its own copy of, so hook them on every button
+local function HookButtonMethods()
     for _, prefix in ipairs(BUTTON_PREFIXES) do
         for i = 1, 12 do
             local btn = _G[prefix .. i]
-            if btn and btn:IsShown() then
-                UpdateButtonVisuals(btn)
-
-                -- If tintIcon is disabled, ensure icon color is restored to Blizzard standard
-                if not DansSpellRangeDB.tintIcon and ActionButton_UpdateUsable then
-                    ActionButton_UpdateUsable(btn)
-                end
+            if btn then
+                if btn.UpdateUsable then hooksecurefunc(btn, "UpdateUsable", OnUsableUpdated) end
+                if btn.UpdateHotkeys then hooksecurefunc(btn, "UpdateHotkeys", StyleButton) end
+                if btn.Update then hooksecurefunc(btn, "Update", StyleButton) end
             end
         end
     end
@@ -305,8 +338,8 @@ local function CreateOptionsPanel()
         end
     )
 
-    -- 2. Checkbox: Thick keybind font with shadow
-    local cbThick = CreateCheckbox("ThickFont", "Thick keybind numbers (THICKOUTLINE + Shadow)", "Applies a bold font with a clean THICKOUTLINE and drop shadow to keybind numbers (1-9, etc.).", -140,
+    -- 2. Checkbox: Thick keybind font
+    local cbThick = CreateCheckbox("ThickFont", "Thick keybind numbers (THICKOUTLINE)", "Applies a bold font with a clean THICKOUTLINE to keybind numbers (1-9, etc.).", -140,
         function(checked)
             DansSpellRangeDB.thickFont = checked
             StyleAllButtons()
@@ -331,8 +364,17 @@ local function CreateOptionsPanel()
         end
     )
 
-    -- 5. Slider: Box Darkness (Opacity)
-    local sliderAlpha = CreateSlider("BoxAlpha", "Background Box Darkness", 0, 100, 5, -335,
+    -- 5. Slider: Shadow Size (offset in half pixels, 0 = no shadow)
+    local sliderShadow = CreateSlider("ShadowSize", "Keybind Shadow Size", 0, 4, 0.5, -335,
+        function(val) return "|cffffd100" .. (math.floor(val * 2 + 0.5) / 2) .. " px|r" end,
+        function(val)
+            DansSpellRangeDB.shadowSize = math.floor(val * 2 + 0.5) / 2
+            StyleAllButtons()
+        end
+    )
+
+    -- 6. Slider: Box Darkness (Opacity)
+    local sliderAlpha = CreateSlider("BoxAlpha", "Background Box Darkness", 0, 100, 5, -390,
         function(val) return "|cffffd100" .. math.floor(val) .. "%|r" end,
         function(val)
             DansSpellRangeDB.bgAlpha = val / 100
@@ -340,10 +382,10 @@ local function CreateOptionsPanel()
         end
     )
 
-    -- 6. Button: Defaults
+    -- 7. Button: Defaults
     local btnDefaults = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
     btnDefaults:SetSize(120, 24)
-    btnDefaults:SetPoint("TOPLEFT", panel, "TOPLEFT", 16, -395)
+    btnDefaults:SetPoint("TOPLEFT", panel, "TOPLEFT", 16, -450)
     btnDefaults:SetText("Defaults")
     btnDefaults:SetScript("OnClick", function()
         for k, v in pairs(DEFAULT_SETTINGS) do
@@ -364,6 +406,10 @@ local function CreateOptionsPanel()
         local curSize = DansSpellRangeDB.fontSize or DEFAULT_SETTINGS.fontSize
         sliderSize:SetValue(curSize)
         sliderSize.ValDisplay:SetText("|cffffd100" .. curSize .. " pt|r")
+
+        local curShadow = DansSpellRangeDB.shadowSize or DEFAULT_SETTINGS.shadowSize
+        sliderShadow:SetValue(curShadow)
+        sliderShadow.ValDisplay:SetText("|cffffd100" .. curShadow .. " px|r")
 
         local curAlpha = math.floor((DansSpellRangeDB.bgAlpha or DEFAULT_SETTINGS.bgAlpha) * 100)
         sliderAlpha:SetValue(curAlpha)
@@ -462,6 +508,16 @@ local function HandleSlashCommand(msg)
             PrintMessage("Usage: |cffffd100/dsr size <8-22>|r (current: " .. (DansSpellRangeDB.fontSize or DEFAULT_SETTINGS.fontSize) .. ")")
         end
 
+    elseif cmd == "shadow" then
+        local shadow = tonumber(arg)
+        if shadow and shadow >= 0 and shadow <= 4 then
+            DansSpellRangeDB.shadowSize = math.floor(shadow * 2 + 0.5) / 2
+            StyleAllButtons()
+            PrintMessage("Shadow size set to |cffffd100" .. DansSpellRangeDB.shadowSize .. "|r.")
+        else
+            PrintMessage("Usage: |cffffd100/dsr shadow <0-4>|r, 0 turns it off (current: " .. (DansSpellRangeDB.shadowSize or DEFAULT_SETTINGS.shadowSize) .. ")")
+        end
+
     elseif cmd == "reset" then
         for k, v in pairs(DEFAULT_SETTINGS) do
             DansSpellRangeDB[k] = v
@@ -479,6 +535,7 @@ local function HandleSlashCommand(msg)
         print("  |cffffd100/dsr tint|r - Toggle full spell icon red tinting (current: " .. (DansSpellRangeDB.tintIcon and "on" or "off") .. ")")
         print("  |cffffd100/dsr box|r - Toggle background box behind numbers (current: " .. (DansSpellRangeDB.showBackdrop and "on" or "off") .. ")")
         print("  |cffffd100/dsr size <8-22>|r - Set font size (current: " .. DansSpellRangeDB.fontSize .. ")")
+        print("  |cffffd100/dsr shadow <0-4>|r - Set shadow size, 0 for none (current: " .. DansSpellRangeDB.shadowSize .. ")")
         print("  |cffffd100/dsr reset|r - Reset all settings to defaults")
     end
 end
@@ -506,15 +563,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 
         -- Hook usability updates so out-of-range icon tint isn't prematurely cleared by mana updates
         if ActionButton_UpdateUsable then
-            hooksecurefunc("ActionButton_UpdateUsable", function(button)
-                if not button or not DansSpellRangeDB.tintIcon then return end
-                if IsActionOutOfRange(button) then
-                    local icon = GetButtonIcon(button)
-                    if icon then
-                        icon:SetVertexColor(1.0, 0.2, 0.2)
-                    end
-                end
-            end)
+            hooksecurefunc("ActionButton_UpdateUsable", OnUsableUpdated)
         end
 
         -- Re-style buttons whenever hotkeys or actions are updated
@@ -528,6 +577,9 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
                 StyleButton(button)
             end)
         end
+
+        -- Same hooks for clients where these are per-button methods
+        HookButtonMethods()
 
         -- Initial styling
         StyleAllButtons()

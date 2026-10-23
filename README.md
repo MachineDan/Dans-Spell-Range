@@ -14,7 +14,8 @@ It restyles Blizzard's own action buttons rather than replacing your bars.
 
 - **Thick, bold keybinds:** a thick outline and a drop shadow on keybind numbers,
   bright white when in range and red when out of range.
-- **Bigger keybinds:** set the keybind font size from 8 to 22.
+- **Bigger keybinds, bigger shadow:** set the keybind font size from 8 to 22,
+  and the shadow size from 0 (none) to 4 pixels.
 - **Optional red icon tint:** tint the whole spell icon red when out of range, like *tullaRange* or *RedRange*.
   Icons go back to their normal colors (including grey for unusable and blue for out of mana)
   when you're in range again, untarget, or target a friendly unit.
@@ -42,6 +43,7 @@ Open the options with `/dsr`, or from **Esc → Options → AddOns → Dan's Spe
 | **Thick keybind numbers** | Thick outline on keybind numbers (on by default) |
 | **Dark background box** | A dark box behind keybind numbers (off by default) |
 | **Keybind Font Size** | 8 to 22 (default 13) |
+| **Keybind Shadow Size** | How far the shadow sits from the text, 0 to 4 pixels; 0 turns it off (default 1.5) |
 | **Background Box Darkness** | How dark the box is (default 65%) |
 | **Defaults** | Reset every option |
 
@@ -55,6 +57,7 @@ Open the options with `/dsr`, or from **Esc → Options → AddOns → Dan's Spe
 | `/dsr tint [on\|off]` | Tint whole spell icons red when out of range (toggles if you leave out on/off) |
 | `/dsr box [on\|off]` | Show the dark box behind keybind numbers (toggles if you leave out on/off) |
 | `/dsr size <8-22>` | Keybind font size |
+| `/dsr shadow <0-4>` | Keybind shadow size (0 turns it off) |
 | `/dsr reset` | Reset all settings to defaults |
 | `/dsr help` | List all commands in chat |
 
