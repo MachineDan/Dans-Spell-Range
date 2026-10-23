@@ -445,24 +445,23 @@ local function CreateOptionsPanel()
     return optionsPanel
 end
 
--- Open options panel directly (opens Game Menu Settings to the Dan's Spell Range tab)
+-- Open options panel directly (opens Game Menu Settings to the Dan's Spell Range tab).
+-- Addons aren't allowed to open the Options window in combat (ADDON_ACTION_BLOCKED,
+-- which pcall can't catch), so say so instead.
 OpenOptions = function()
+    if InCombatLockdown() then
+        PrintMessage("Can't open the options during combat. Try again when combat ends.")
+        return
+    end
+
     local panel = CreateOptionsPanel()
     if not panel then return end
 
-    local opened = false
-    if Settings and Settings.OpenToCategory and panel.settingsCategory then
-        local ok = pcall(function()
-            Settings.OpenToCategory(panel.settingsCategory:GetID())
-        end)
-        if ok then opened = true end
-    end
-
-    if not opened and InterfaceOptionsFrame_OpenToCategory then
-        pcall(function()
-            InterfaceOptionsFrame_OpenToCategory(panel)
-            InterfaceOptionsFrame_OpenToCategory(panel) -- Workaround for Blizzard double-call quirk
-        end)
+    if Settings and Settings.OpenToCategory and panel.settingsCategory and panel.settingsCategory.GetID then
+        Settings.OpenToCategory(panel.settingsCategory:GetID())
+    elseif InterfaceOptionsFrame_OpenToCategory then
+        InterfaceOptionsFrame_OpenToCategory(panel)
+        InterfaceOptionsFrame_OpenToCategory(panel) -- Workaround for Blizzard double-call quirk
     end
 end
 
